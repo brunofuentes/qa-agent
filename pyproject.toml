@@ -1,0 +1,29 @@
+[tool.poetry]
+name = "qa-agent"
+version = "0.1.0"
+description = "A multi-step AI Agent System for QA Testing"
+authors = ["Bruno Fuentes <brunofuentes@gmail.com>"]
+readme = "README.md"
+packages = [{include = "src"}]
+
+[tool.poetry.dependencies]
+python = "^3.12"
+agno = "1.1.9"
+browser-use = "0.1.40"
+python-dotenv = "^1.0.0"
+google-genai = "^1.5.0"
+langchain-google-genai = "2.0.11"
+google-ai-generativelanguage = "0.6.16"
+langchain-openai = "0.3.1"
+asyncio = "^3.4.3"
+langchain-anthropic = "0.3.3"
+
+[tool.poetry.group.dev.dependencies]
+black = "^23.7.0"
+isort = "^5.12.0"
+mypy = "^1.15.0"
+flake8 = "^7.1.2"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

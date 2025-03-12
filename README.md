@@ -8,7 +8,7 @@ QA-Agent uses multiple AI agents to create End-to-End Testing. Each agent handle
 
 ## Quick Start
 
-1. Install Playwright locally (needed for browser agent)
+1. Install Playwright locally (needed for browser agent): `npm install -g playwright`
 2. Clone this repo
 3. Install dependencies: `poetry install`
 4. Set up API keys in `.env` (Currently: GOOGLE_API_KEY and ANTHROPIC_API_KEY)

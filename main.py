@@ -2,9 +2,13 @@ import asyncio
 from src.agents.gherkin_agent import create_gherkin_agent
 from src.agents.playwright_agent import create_playwright_agent
 from src.agents.browser_agent import run_browser_agent
+from src.database.session import init_db
+from src.database.crud import create_test_log, update_test_log
 
 
 async def main():
+    init_db()
+
     print("QA Agent System")
     print("---------------")
     print("Type 'exit' to quit at any time")
@@ -31,10 +35,19 @@ async def main():
                 print("Goodbye!")
                 break
 
+            test_log = create_test_log(
+                feature_description=question,
+            )
+
             # Generate Gherkin scenario
             gherkin_response = gherkin_agent.run(question)
 
             print(gherkin_response.content)
+
+            update_test_log(
+                log_id=test_log.id,
+                gherkin_scenario=gherkin_response.content,
+            )
 
             # Submenu for Gherkin scenario
             while True:
@@ -49,8 +62,13 @@ async def main():
                 if sub_choice == "1":
                     # Generate Playwright test
                     print("\nGenerating Playwright test...")
-                    playwright_agent.print_response(
-                        gherkin_response.content, stream=True
+
+                    playwright_response = playwright_agent.run(gherkin_response.content)
+                    print(playwright_response.content)
+
+                    update_test_log(
+                        log_id=test_log.id,
+                        playwright_test=playwright_response.content,
                     )
 
                 elif sub_choice == "2":
@@ -58,8 +76,21 @@ async def main():
                     print("\nRunning browser automation with the Gherkin scenario...")
                     try:
                         print("Starting browser automation...")
-                        result = await run_browser_agent(gherkin_response.content)
+                        browser_response = await run_browser_agent(
+                            gherkin_response.content
+                        )
                         print("Browser automation completed")
+
+                        browser_results = (
+                            browser_response.action_results()
+                        )  # This is a list
+                        browser_results_str = str(browser_results)
+
+                        update_test_log(
+                            log_id=test_log.id,
+                            browser_test=browser_results_str,
+                        )
+
                     except Exception as e:
                         print(f"Error during browser automation: {e}")
 
@@ -82,7 +113,6 @@ async def main():
                     break
 
         elif main_choice == "2":
-            # Browser automation flow
             while True:
                 print("\nBrowser Automation")
                 task = input(

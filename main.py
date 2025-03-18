@@ -1,9 +1,12 @@
 import asyncio
 from src.agents.gherkin_agent import create_gherkin_agent
 from src.agents.playwright_agent import create_playwright_agent
-from src.agents.browser_agent import run_browser_agent
+from src.agents.browser_agent import BrowserAgent
 from src.database.session import init_db
 from src.database.crud import create_test_log, update_test_log
+from src.prompts.gherkin_scenario_template import gherkin_scenario_template
+
+model_name = "openai"
 
 
 async def main():
@@ -13,8 +16,8 @@ async def main():
     print("---------------")
     print("Type 'exit' to quit at any time")
 
-    # Create our agents
-    gherkin_agent = create_gherkin_agent()
+    browser_agent = BrowserAgent(model_name=model_name)
+    gherkin_agent = create_gherkin_agent(model_name=model_name)
     playwright_agent = create_playwright_agent()
 
     while True:
@@ -39,14 +42,15 @@ async def main():
                 feature_description=question,
             )
 
-            # Generate Gherkin scenario
-            gherkin_response = gherkin_agent.run(question)
+            gherkin_prompt = gherkin_scenario_template(feature_description=question)
+            gherkin_response = gherkin_agent.run(gherkin_prompt)
 
             print(gherkin_response.content)
 
             update_test_log(
                 log_id=test_log.id,
                 gherkin_scenario=gherkin_response.content,
+                ai_model=model_name,
             )
 
             # Submenu for Gherkin scenario
@@ -76,14 +80,12 @@ async def main():
                     print("\nRunning browser automation with the Gherkin scenario...")
                     try:
                         print("Starting browser automation...")
-                        browser_response = await run_browser_agent(
+                        browser_response = await browser_agent.run(
                             gherkin_response.content
                         )
                         print("Browser automation completed")
 
-                        browser_results = (
-                            browser_response.action_results()
-                        )  # This is a list
+                        browser_results = browser_response.final_result()
                         browser_results_str = str(browser_results)
 
                         update_test_log(
@@ -123,9 +125,8 @@ async def main():
                     break
 
                 try:
-                    # Execute browser automation
                     print(f"Starting browser automation for task: {task}")
-                    result = await run_browser_agent(task)
+                    result = await browser_agent.run(task)
                     print("Browser automation completed")
 
                 except Exception as e:

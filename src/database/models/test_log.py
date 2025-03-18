@@ -16,6 +16,7 @@ class TestLog(Base):
     created_at: Mapped[datetime.datetime] = mapped_column(
         DateTime, default=lambda: datetime.datetime.now(datetime.UTC)
     )
+    ai_model: Mapped[str] = mapped_column(String, nullable=True)
     updated_at: Mapped[datetime.datetime] = mapped_column(
         DateTime,
         onupdate=lambda: datetime.datetime.now(datetime.UTC),

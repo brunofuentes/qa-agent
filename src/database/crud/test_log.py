@@ -10,6 +10,7 @@ def create_test_log(
     browser_test: str = "",
     playwright_test: str = "",
     test_result: str = "",
+    ai_model: str = "",
     db: Optional[Session] = None,
 ) -> TestLog:
     """Create a new test log entry"""
@@ -25,6 +26,7 @@ def create_test_log(
             browser_test=browser_test,
             playwright_test=playwright_test,
             test_result=test_result,
+            ai_model=ai_model,
         )
         db.add(test_log)
         db.commit()
@@ -69,6 +71,7 @@ def get_all_test_logs(db: Optional[Session] = None) -> List[TestLog]:
 def update_test_log(
     log_id: int,
     gherkin_scenario: Optional[str] = None,
+    ai_model: Optional[str] = None,
     browser_test: Optional[str] = None,
     playwright_test: Optional[str] = None,
     test_result: Optional[str] = None,
@@ -93,6 +96,8 @@ def update_test_log(
             test_log.playwright_test = playwright_test
         if test_result is not None:
             test_log.test_result = test_result
+        if ai_model is not None:
+            test_log.ai_model = ai_model
 
         db.commit()
         db.refresh(test_log)

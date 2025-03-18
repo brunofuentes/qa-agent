@@ -5,6 +5,7 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_anthropic import ChatAnthropic
 import os
 from dotenv import load_dotenv
+from .llm_provider import get_langchain_llm
 
 load_dotenv()
 
@@ -23,23 +24,41 @@ anthropic_llm = ChatAnthropic(
 )
 
 
-def create_browser_agent(task):
-    """Create a browser agent using browser-use with Google Gemini."""
+class BrowserAgent:
+    def __init__(self, model_name="gemini"):
+        """Initialize the browser agent with a specific model."""
+        self.browser = Browser()
+        self.controller = Controller()
+        self.llm = get_langchain_llm(model_name=model_name)
+        self.model_name = model_name
 
-    # Create the browser-use Agent with the Gemini LLM
-    return BrowserUseAgent(
-        task=task,
-        llm=gemini_llm,
-        browser=browser,
-        controller=controller,
-    )
+    def create(self, task):
+        """Create a browser agent for a specific task."""
+        return BrowserUseAgent(
+            task=task,
+            llm=self.llm,
+            browser=self.browser,
+            controller=self.controller,
+        )
+
+    async def run(self, task):
+        """Run the browser agent on a specific task."""
+        agent = BrowserUseAgent(
+            task=task,
+            llm=self.llm,
+        )
+        return await agent.run()
+
+
+default_agent = BrowserAgent()
+
+
+def create_browser_agent(task, model_name="gemini"):
+    """Create a browser agent using browser-use with specified model."""
+    agent = BrowserAgent(model_name)
+    return agent.create(task)
 
 
 async def run_browser_agent(task):
-    """Run the browser agent with the specified task."""
-
-    agent = BrowserUseAgent(
-        task=task,
-        llm=gemini_llm,
-    )
-    return await agent.run()
+    """Run the browser agent with the specified task using default model."""
+    return await default_agent.run(task)
